@@ -1,11 +1,11 @@
-package lru
+package evict_strategy
 
 import (
 	"container/list"
 	"sync"
 )
 
-type Cache struct {
+type LRUCache struct {
 	maxBytes int64
 	nbytes   int64
 	lock     sync.Mutex
@@ -24,8 +24,8 @@ type Value interface {
 	Len() int
 }
 
-func NewLRU(maxBytes int64, onEvicted func(string, Value)) *Cache {
-	return &Cache{
+func NewLRU(maxBytes int64, onEvicted func(string, Value)) *LRUCache {
+	return &LRUCache{
 		maxBytes:  maxBytes,
 		ll:        list.New(),
 		cache:     make(map[string]*list.Element),
@@ -33,7 +33,7 @@ func NewLRU(maxBytes int64, onEvicted func(string, Value)) *Cache {
 	}
 }
 
-func (c *Cache) Add(key string, value Value) {
+func (c *LRUCache) Add(key string, value Value) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if ele, ok := c.cache[key]; ok {
@@ -51,9 +51,8 @@ func (c *Cache) Add(key string, value Value) {
 	}
 }
 
-
 // Remove the tail element
-func (c *Cache) RemoveOldest() {
+func (c *LRUCache) RemoveOldest() {
 	// c.lock.Lock()
 	// defer c.lock.Unlock()
 	ele := c.ll.Back()
@@ -68,7 +67,7 @@ func (c *Cache) RemoveOldest() {
 	}
 }
 
-func (c *Cache) Get(key string) (value Value, ok bool) {
+func (c *LRUCache) Get(key string) (value Value, ok bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if ele, ok := c.cache[key]; ok {
@@ -80,6 +79,6 @@ func (c *Cache) Get(key string) (value Value, ok bool) {
 }
 
 // Len the number of cache entries
-func (c *Cache) Len() int {
+func (c *LRUCache) Len() int {
 	return c.ll.Len()
 }
