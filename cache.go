@@ -2,6 +2,7 @@ package distributedcache
 
 import (
 	"distributed_cache/evict_strategy"
+	"log"
 	"sync"
 )
 
@@ -18,14 +19,19 @@ type Cache struct {
 	Strategy   EvictStrategy // TODO: instantiate the strategy when Add calling
 }
 
-func NewCache(chosenStrategy string, cacheBytes int64) *Cache {
-	var strategy string
+var (
+	StrategyList = map[string]bool{
+		"lru": true,
+		// Add other strategies here
+	}
+)
 
-	switch chosenStrategy {
-	case "lru":
-		strategy = chosenStrategy
-	default:
-		panic("Invalid strategy: " + chosenStrategy)
+func NewCache(chosenStrategy string, cacheBytes int64) *Cache {
+	strategy := chosenStrategy
+
+	if _, ok := StrategyList[chosenStrategy]; !ok {
+		strategy = "lru"
+		log.Printf("Unknown strategy: %s, use default strategy: lru", chosenStrategy)
 	}
 
 	return &Cache{
